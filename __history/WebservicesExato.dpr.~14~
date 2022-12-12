@@ -1,0 +1,97 @@
+program WebservicesExato;
+
+{$APPTYPE CONSOLE}
+
+{$R *.res}
+
+uses
+  System.SysUtils,
+  System.IOUtils,
+  Generics.Collections,
+  ClassWSExato in 'ClassWSExato.pas';
+
+type
+  TValReq = TDictionary<string,string>;
+
+var
+  ws : WSExato;
+  resp : WSResposta;
+  log : ClassWSExato.TStringArr;
+  servico, k, arquivo, URLWS, USWS, CHWS, CLCONC : string;
+  i : integer;
+  vars : TValReq;
+
+begin
+
+  // informações de acesso ao serviço (fornecidas pela Exato Soluções)
+  URLWS := 'endereço do webservice';
+  USWS := 'usuário de acesso';
+  CHWS := 'chave de 32 caracteres';
+  CLCONC := 'identificador do cliente';
+
+  URLWS := 'http://localhost/exato/vodka2/httpdocs/';
+  USWS := 'lucas';
+  CHWS := '43d287a0f68102b5ed67611c354d94ef';
+  CLCONC := 'veraneio';
+
+  // criando o acesso aos webservices
+  ws := WSExato.Create(URLWS, USWS);
+  vars := TValReq.Create;
+
+  // indique o serviço a ser chamado
+  servico := 'extrato bancário'; // envio de extrato bancário
+  //servico := 'quitação'; // conferências de parcelas quitadas
+
+  // enviando extrato bancário para processamento
+  if (servico = 'extrato bancário') then begin
+
+    // carregando o texto do arquico de extrato
+    arquivo := TFile.ReadAllText('extrato.ret');
+
+    // variáveis da requisição
+    vars.Add('c', CLCONC); // o identificador do cliente, fornecido pela Exato Soluções
+    vars.Add('e', arquivo); // o texto do extrato (OFX ou CNAB)
+    vars.Add('b', '104-118-7745'); // conta bancária no formato banco-agência-conta
+    vars.Add('m', 'não'); // o extrato é um CNAB multi conta? (sim/não)
+
+    // texto da chave (usuário + cliente + texto do extrato)
+    k := USWS + CLCONC + arquivo;
+
+    // chamando o serviço
+    resp := ws.requisitar('vdk-cartoes/extrato-bancario', CHWS, k, vars);
+
+  end;
+
+  // conferindo a quitação de parcelas
+  if (servico = 'quitação') then begin
+
+    // variáveis da requisição
+    vars.Add('c', CLCONC); // o identificador do cliente, fornecido pela Exato Soluções
+    vars.Add('d', '05/07/2022'); // data a consultar no formato DD/MM/AAAA ou AAAA-MM-DD
+    vars.Add('cn', '10.864.329/0001-54'); // CNPJ da loja (não enviar ou deixar em branco para todas as do cliente)
+
+    // texto da chave (usuário + cliente + data)
+    k := USWS + CLCONC + '05/07/2022';
+
+    // chamando o serviço
+    resp := ws.requisitar('vdk-cartoes/quitacao', CHWS, k, vars);
+
+  end;
+
+  // finalizando
+  WriteLn('Chamada ao serviço finalizada com o erro ' + IntToStr(resp.e) + ' (' + resp.msg +').');
+
+  // registrando o resultado do chamado
+  TFile.WriteAllText('resposta.json', resp.original);
+  WriteLn('O arquivo resposta.json, trazendo a resposta do chamado, foi gravado.');
+
+  // exibindo o log da operação
+  WriteLn('');
+  WriteLn('LOG DA REQUISIÇÃO');
+  log := ws.recLog;
+  for i := 0 to (Length(log)-1) do WriteLn(log[i]);
+
+  // interrompendo a execução
+  ReadLn;
+
+end.

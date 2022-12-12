@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2022/04/03 08:42:23.000.696,C:\Users\choki\Documents\Embarcadero\Studio\Projects\Project1.dproj=D:\Exato\Code\ConciliadorDelphi\ConciliadorDelphi.dproj</Transaction>
+    <Transaction>2022/04/03 08:59:32.000.841,=D:\Exato\Code\ConciliadorDelphi\Unit1.pas</Transaction>
+    <Transaction>2022/04/03 09:01:43.000.264,D:\Exato\Code\ConciliadorDelphi\Unit1.pas=D:\Exato\Code\ConciliadorDelphi\untFuncoes.pas</Transaction>
+    <Transaction>2022/04/04 22:16:51.000.065,=D:\Exato\Code\ConciliadorDelphi\Unit1.pas</Transaction>
+    <Transaction>2022/04/04 22:17:02.000.441,D:\Exato\Code\ConciliadorDelphi\WSExato.pas=D:\Exato\Code\ConciliadorDelphi\Unit1.pas</Transaction>
+    <Transaction>2022/04/04 22:18:21.000.780,=D:\Exato\Code\ConciliadorDelphi\Unit1.pas</Transaction>
+    <Transaction>2022/04/04 22:18:40.000.070,D:\Exato\Code\ConciliadorDelphi\ClassWSExato.pas=D:\Exato\Code\ConciliadorDelphi\Unit1.pas</Transaction>
+    <Transaction>2022/04/04 23:03:31.000.374,=D:\Exato\Code\ConciliadorDelphi\Unit1.pas</Transaction>
+    <Transaction>2022/04/04 23:03:49.000.052,D:\Exato\Code\ConciliadorDelphi\Unit1.pas=D:\Exato\Code\ConciliadorDelphi\ClassWSResposta.pas</Transaction>
+    <Transaction>2022/12/02 11:31:02.000.450,D:\Github\webservicesexato\WebservicesExato.dproj=D:\Github\conciliadordelphi\ConciliadorDelphi.dproj</Transaction>
+  </Transactions>
+</BorlandProject>

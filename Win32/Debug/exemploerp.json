@@ -1,0 +1,21 @@
+{
+    "cabecalho": {
+        "cnpj": "10000000000015",
+        "datainicial": "23/06/2022",
+        "datafinal": "23/06/2022",
+        "versao": "1"
+    },
+    "registros": [{
+            "id": "TESTE",
+            "datavenda": "17/06/2022",
+            "datapagamento": "20/06/2022",
+            "nsu": "1234",
+            "autorizacao": "5678",
+            "valorparcela": "100",
+            "valorliquidoparcela": "100",
+            "totalparcelas": "1",
+            "parcela": "1",
+            "taxa": "1.00"
+        }
+    ]
+}

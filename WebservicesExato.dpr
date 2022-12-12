@@ -1,0 +1,152 @@
+program WebservicesExato;
+
+{$APPTYPE CONSOLE}
+
+{$R *.res}
+
+uses
+  System.SysUtils,
+  System.IOUtils,
+  Generics.Collections,
+  ClassWSExato in 'ClassWSExato.pas';
+
+type
+  TValReq = TDictionary<string,string>;
+
+var
+  ws : WSExato;
+  resp : WSResposta;
+  log : ClassWSExato.TStringArr;
+  servico, k, arquivo, URLWS, USWS, CHWS, CLCONC : string;
+  i : integer;
+  vars : TValReq;
+
+begin
+
+  // informações de acesso ao serviço (fornecidas pela Exato Soluções)
+  URLWS := 'endereço do webservice';
+  USWS := 'usuário de acesso';
+  CHWS := 'chave de 32 caracteres';
+  CLCONC := 'identificador do cliente';
+
+  // criando o acesso aos webservices
+  ws := WSExato.Create(URLWS, USWS);
+  vars := TValReq.Create;
+
+  // indique o serviço a ser chamado
+  servico := 'conciliação erp'; // conciliar informações com o sistema de vendas
+  //servico := 'extrato de movimentação'; // recuperar extrato de movimentação
+  //servico := 'conciliação bancária'; // conciliar informações de extrato bancário
+  //servico := 'extrato bancário'; // envio de extrato bancário
+  //servico := 'quitação'; // conferências de parcelas quitadas
+
+  // conciliar informações com o sistema de vendas
+  if (servico = 'conciliação erp') then begin
+
+    // carregando o texto do arquivo de extrato
+    arquivo := TFile.ReadAllText('exemploerp.json');
+
+    // variáveis da requisição
+    vars.Add('c', CLCONC); // o identificador do cliente, fornecido pela Exato Soluções
+    vars.Add('req', arquivo); // o texto de requisição
+    vars.Add('t', 'venda'); // o tipo de requisição ("venda" ou "pagamento")
+
+    // texto da chave (usuário + cliente + tipó de requisição + texto da requisição)
+    k := USWS + CLCONC + 'venda' + arquivo;
+
+    // chamando o serviço
+    resp := ws.requisitar('vdk-cartoes/conciliacao-erp', CHWS, k, vars);
+
+  end;
+
+  // recuperar extrato de movimentação
+  if (servico = 'extrato de movimentação') then begin
+
+    // variáveis da requisição
+    vars.Add('id', CLCONC); // o identificador do cliente, fornecido pela Exato Soluções
+    vars.Add('dini', '01/03/2022'); // data inicial do período
+    vars.Add('dfim', '05/03/2022'); // data final do período
+    vars.Add('tp', 'venda'); // o tipo de movimentação ("venda" ou "pagamento")
+    vars.Add('l', 'exato.json'); // formato da lista a receber
+
+    // texto da chave (cliente + data inicial + data final + tipo de movimentação)
+    k := CLCONC + '01/03/2022' + '05/03/2022' + 'venda';
+
+    // chamando o serviço
+    resp := ws.requisitar('vdk-cartoes/extrato-recuperacao', CHWS, k, vars);
+
+  end;
+
+  // conciliar informações de extrato bancário
+  if (servico = 'conciliação bancária') then begin
+
+    // carregando o texto do arquivo de extrato
+    arquivo := TFile.ReadAllText('caminho para o arquivo cnab ou ofx');
+
+    // variáveis da requisição
+    vars.Add('c', CLCONC); // o identificador do cliente, fornecido pela Exato Soluções
+    vars.Add('e', arquivo); // o texto do extrato (OFX ou CNAB)
+    vars.Add('b', 'conta bancária'); // conta bancária no formato banco-agência-conta
+    vars.Add('q', 'sim'); // receber informações de quitação nda resposta? (sim/não)
+
+    // texto da chave (usuário + cliente + conta bancária + texto do extrato)
+    k := USWS + CLCONC + 'conta bancária' + arquivo;
+
+    // chamando o serviço
+    resp := ws.requisitar('vdk-cartoes/bancario', CHWS, k, vars);
+
+  end;
+
+  // enviando extrato bancário para processamento
+  if (servico = 'extrato bancário') then begin
+
+    // carregando o texto do arquivo de extrato
+    arquivo := TFile.ReadAllText('caminho para o arquivo cnab ou ofx');
+
+    // variáveis da requisição
+    vars.Add('c', CLCONC); // o identificador do cliente, fornecido pela Exato Soluções
+    vars.Add('e', arquivo); // o texto do extrato (OFX ou CNAB)
+    vars.Add('b', 'conta bancária'); // conta bancária no formato banco-agência-conta
+    vars.Add('m', 'não'); // o extrato é um CNAB multi conta? (sim/não)
+
+    // texto da chave (usuário + cliente + texto do extrato)
+    k := USWS + CLCONC + arquivo;
+
+    // chamando o serviço
+    resp := ws.requisitar('vdk-cartoes/extrato-bancario', CHWS, k, vars);
+
+  end;
+
+  // conferindo a quitação de parcelas
+  if (servico = 'quitação') then begin
+
+    // variáveis da requisição
+    vars.Add('c', CLCONC); // o identificador do cliente, fornecido pela Exato Soluções
+    vars.Add('d', '05/07/2022'); // data a consultar no formato DD/MM/AAAA ou AAAA-MM-DD
+    vars.Add('cn', '00000000000000'); // CNPJ da loja (não enviar ou deixar em branco para todas as do cliente)
+
+    // texto da chave (usuário + cliente + data)
+    k := USWS + CLCONC + '05/07/2022';
+
+    // chamando o serviço
+    resp := ws.requisitar('vdk-cartoes/quitacao', CHWS, k, vars);
+
+  end;
+
+  // finalizando
+  WriteLn('Chamada ao serviço finalizada com o erro ' + IntToStr(resp.e) + ' (' + resp.msg +').');
+
+  // registrando o resultado do chamado
+  TFile.WriteAllText('resposta.json', resp.original);
+  WriteLn('O arquivo resposta.json, trazendo a resposta do chamado, foi gravado.');
+
+  // exibindo o log da operação
+  WriteLn('');
+  WriteLn('LOG DA REQUISIÇÃO');
+  log := ws.recLog;
+  for i := 0 to (Length(log)-1) do WriteLn(log[i]);
+
+  // interrompendo a execução
+  ReadLn;
+
+end.
